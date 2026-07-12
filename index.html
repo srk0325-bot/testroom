@@ -3,233 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PREMIUM 럭키 청소 당번 추첨기</title>
+    <title>심쿵! 학급 자리배치</title>
     
-    <!-- Bootstrap 5 CSS (레이아웃 구조용) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Tailwind CSS (초정밀 프리미엄 디자인용) -->
+    <!-- 스타일 라이브러리 로드 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome (고급 아이콘팩) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- SweetAlert2 (네온 팝업 메커니즘) -->
+    <!-- 기능 라이브러리 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- 구글 폰트 (Pretendard & Jua) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
         body {
             font-family: 'Pretendard', sans-serif;
-            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+            background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+            min-height: 100vh;
         }
         
-        /* 초정밀 글래스모피즘 플레이트 */
+        .cute-font { font-family: 'Jua', sans-serif; }
+        
         .glass-card {
-            background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 2rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
         }
 
-        /* 둥둥 떠 있는 듯한 번호 대기 슬롯 */
-        .ball-slot {
-            border: 2px dashed rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.02);
-            transition: all 0.3s ease;
+        .input-focus:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
         }
 
-        /* 커스텀 SweetAlert2 다크 모드 팝업 레이아웃 */
-        .swal2-popup.my-custom-swal {
-            background: rgba(15, 23, 42, 0.95) !important;
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 28px !important;
-            color: #f8fafc !important;
-            box-shadow: 0 0 40px rgba(99, 102, 241, 0.25);
+        /* 칠판 애니메이션 효과 */
+        .blackboard {
+            background: #2D4356;
+            border: 6px solid #8B4513;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
         }
 
-        /* 회전하는 네온 링 장식 */
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .blackboard::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            right: 20px;
+            width: 30px;
+            height: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            box-shadow: -40px 0 0 rgba(255,255,255,0.5);
         }
-        .animate-spin-slow {
-            animation: spin-slow 8s linear infinite;
+
+        /* 짝꿍 디자인 */
+        .pair-container {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
+        .seat-card {
+            height: 80px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .seat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .seat-boy {
+            background-color: #EEF2FF;
+            border-color: #A5B4FC;
+            color: #4338CA;
+        }
+
+        .seat-girl {
+            background-color: #FFF1F2;
+            border-color: #FDA4AF;
+            color: #BE185D;
+        }
+
+        .seat-empty {
+            background-color: #F8FAFC;
+            border-color: #E2E8F0;
+            color: #94A3B8;
+            border-style: dashed;
+        }
+
+        /* 시점 전환 효과 */
+        #grid-container { transition: all 0.5s ease; }
+        .view-teacher { flex-direction: column-reverse !important; }
+        .view-teacher-grid { flex-direction: column-reverse !important; }
+
+        .btn-cute {
+            border-radius: 1rem;
+            transition: all 0.2s;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .btn-cute:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="min-h-screen d-flex align-items-center justify-content-center p-4">
+<body class="py-10 px-4">
 
-<div class="container-sm max-w-xl">
-    <!-- 메인 추첨 카드 -->
-    <div class="glass-card rounded-3xl p-8 p-md-10 text-center position-relative overflow-hidden">
-        
-        <!-- 탑 보더 그라데이션 라인 -->
-        <div class="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-cyan-400 via-indigo-500 to-fuchsia-500"></div>
+<div class="container max-w-5xl">
+    <!-- Header -->
+    <div class="text-center mb-10">
+        <h1 class="cute-font text-5xl text-indigo-600 mb-2 drop-shadow-sm">🍭 학급 자리 배정 대작전</h1>
+        <p class="text-gray-500 font-medium">우리 반의 행복한 짝꿍을 찾아주세요!</p>
+    </div>
 
-        <!-- 헤더 영역 -->
-        <div class="mb-8 position-relative">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 text-white text-2xl shadow-lg shadow-indigo-500/30 mb-4 animate-bounce">
-                <i class="fa-solid fa-sparkles"></i>
+    <!-- Main Content -->
+    <div class="glass-card p-8 mb-8">
+        <!-- Input Section -->
+        <div class="row g-4 mb-8">
+            <div class="col-md-6">
+                <label class="cute-font text-2xl text-indigo-500 mb-2 flex items-center gap-2">
+                    <span>👦</span> 멋진 남학생 명단
+                </label>
+                <textarea id="boys-input" class="form-control rounded-2xl p-4 input-focus border-2" rows="4" 
+                    placeholder="엔터로 구분해서 이름을 적어주세요">김우주&#10;이도윤&#10;박시우&#10;최서준&#10;정지호&#10;한민준&#10;윤유준&#10;임주원&#10;오예준&#10;송준우&#10;신건우&#10;안현우</textarea>
             </div>
-            <h1 class="fw-extrabold tracking-wider text-3xl md:text-4xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-200 to-fuchsia-400 mb-2">
-                CLEANING SQUAD
-            </h1>
-            <p class="text-slate-400 text-sm fw-normal">
-                1번부터 30번 중, 오늘 구역을 정화할 <span class="text-cyan-400 fw-bold">운명의 5인</span>을 탐색합니다.
-            </p>
+            <div class="col-md-6">
+                <label class="cute-font text-2xl text-rose-500 mb-2 flex items-center gap-2">
+                    <span>👧</span> 예쁜 여학생 명단
+                </label>
+                <textarea id="girls-input" class="form-control rounded-2xl p-4 input-focus border-2" rows="4" 
+                    placeholder="엔터로 구분해서 이름을 적어주세요">이지아&#10;김서아&#10;박하윤&#10;최서윤&#10;정서연&#10;한아윤&#10;윤지민&#10;임윤아&#10;오지우&#10;송채원&#10;신소율</textarea>
+            </div>
         </div>
 
-        <!-- 추첨 구역 플레이트 (공들이 나타나는 존) -->
-        <div class="row g-3 justify-content-center mb-10" id="resultContainer">
-            <!-- 기본 상태 대기용 슬롯 디자인 -->
-            <div class="col-auto"><div class="ball-slot d-flex items-center justify-center rounded-full text-slate-600 fw-bold shadow-inner" style="width: 64px; height: 64px;"><i class="fa-solid fa-question text-sm opacity-60"></i></div></div>
-            <div class="col-auto"><div class="ball-slot d-flex items-center justify-center rounded-full text-slate-600 fw-bold shadow-inner" style="width: 64px; height: 64px;"><i class="fa-solid fa-question text-sm opacity-60"></i></div></div>
-            <div class="col-auto"><div class="ball-slot d-flex items-center justify-center rounded-full text-slate-600 fw-bold shadow-inner" style="width: 64px; height: 64px;"><i class="fa-solid fa-question text-sm opacity-60"></i></div></div>
-            <div class="col-auto"><div class="ball-slot d-flex items-center justify-center rounded-full text-slate-600 fw-bold shadow-inner" style="width: 64px; height: 64px;"><i class="fa-solid fa-question text-sm opacity-60"></i></div></div>
-            <div class="col-auto"><div class="ball-slot d-flex items-center justify-center rounded-full text-slate-600 fw-bold shadow-inner" style="width: 64px; height: 64px;"><i class="fa-solid fa-question text-sm opacity-60"></i></div></div>
+        <!-- Controls -->
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6 bg-gray-50 p-6 rounded-3xl border border-gray-100">
+            <div class="flex items-center gap-4">
+                <span class="cute-font text-xl text-gray-600">누구 시점으로 볼까요?</span>
+                <div class="btn-group shadow-sm bg-white p-1 rounded-2xl">
+                    <input type="radio" class="btn-check" name="viewMode" id="studentMode" value="student" checked onchange="updateView()">
+                    <label class="btn btn-outline-indigo px-4 py-2 rounded-xl border-0 font-bold" for="studentMode">학생 (앞이 위)</label>
+                    <input type="radio" class="btn-check" name="viewMode" id="teacherMode" value="teacher" onchange="updateView()">
+                    <label class="btn btn-outline-indigo px-4 py-2 rounded-xl border-0 font-bold" for="teacherMode">선생님 (앞이 아래)</label>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="arrangeSeats()" class="btn btn-indigo btn-lg btn-cute px-8 bg-indigo-600 text-white shadow-indigo-200 shadow-lg">
+                    랜덤 배치! ✨
+                </button>
+                <button onclick="saveAsPDF()" class="btn btn-emerald btn-lg btn-cute px-8 bg-emerald-500 text-white shadow-emerald-200 shadow-lg">
+                    PDF 저장 📄
+                </button>
+            </div>
         </div>
+    </div>
 
-        <!-- 작동 버튼 트리거 -->
-        <div class="d-grid gap-2 max-w-xs mx-auto">
-            <button onclick="handleDrawTrigger()" class="btn btn-lg border-0 text-white font-bold bg-gradient-to-r from-cyan-500 via-indigo-600 to-fuchsia-600 hover:from-cyan-400 hover:to-fuchsia-500 rounded-full py-4 px-8 shadow-lg shadow-indigo-500/20 transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 tracking-widest text-base">
-                <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> 운명의 룰렛 가동
-            </button>
+    <!-- Board Area -->
+    <div id="pdf-area" class="bg-white rounded-[3rem] p-10 shadow-2xl">
+        <div id="classroom-layout" class="flex flex-col items-center gap-10">
+            <!-- Blackboard -->
+            <div class="blackboard w-3/5 py-4 rounded-xl text-white text-center cute-font text-3xl tracking-[1rem]">
+                칠 판
+            </div>
+
+            <!-- Seat Grid -->
+            <div id="grid-container" class="w-full flex flex-col gap-8 max-w-4xl">
+                <!-- Rows generated by JS -->
+            </div>
         </div>
-
     </div>
 </div>
 
 <script>
-    // 운명의 5인 번호 뽑기 핵심 로직 (순수 JS)
-    function generateLuckyNumbers() {
-        const numbers = [];
-        while (numbers.length < 5) {
-            const num = Math.floor(Math.random() * 30) + 1;
-            if (!numbers.includes(num)) {
-                numbers.push(num);
-            }
+    // 최초 실행
+    document.addEventListener('DOMContentLoaded', arrangeSeats);
+
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
-        return numbers.sort((a, b) => a - b);
+        return array;
     }
 
-    // 화면에 번호 공들을 렌더링하는 함수
-    function renderBallElements(luckyNumbers) {
-        const container = document.getElementById('resultContainer');
-        container.innerHTML = ''; // 이전 요소 청소
+    function arrangeSeats() {
+        const boys = document.getElementById('boys-input').value.split('\n').map(v => v.trim()).filter(v => v);
+        const girls = document.getElementById('girls-input').value.split('\n').map(v => v.trim()).filter(v => v);
 
-        // 프리미엄 네온 테마 컬러셋
-        const gradients = [
-            'from-cyan-400 to-blue-500 shadow-cyan-500/20',
-            'from-sky-400 to-indigo-500 shadow-indigo-500/20',
-            'from-indigo-400 to-purple-500 shadow-purple-500/20',
-            'from-purple-400 to-fuchsia-500 shadow-fuchsia-500/20',
-            'from-fuchsia-400 to-pink-500 shadow-pink-500/20'
-        ];
+        shuffle(boys);
+        shuffle(girls);
 
-        luckyNumbers.forEach((num, index) => {
-            const col = document.createElement('div');
-            col.className = 'col-auto';
-            
-            const ball = document.createElement('div');
-            ball.className = `d-flex align-items-center justify-content-center fw-black rounded-full text-white shadow-xl bg-gradient-to-br ${gradients[index]} border border-white/20`;
-            ball.style.width = "64px";
-            ball.style.height = "64px";
-            ball.style.fontSize = "1.4rem";
-            
-            // 시각적 등장을 극대화하기 위해 초기값 설정
-            ball.style.transform = "scale(0) rotate(-180deg)";
-            ball.style.transition = "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)";
-            ball.innerText = num;
-            
-            col.appendChild(ball);
-            container.appendChild(col);
-            
-            // 시차를 주어 순차적으로 팡팡- 터지는 연출
-            setTimeout(() => {
-                ball.style.transform = "scale(1) rotate(0deg)";
-            }, index * 180);
+        const container = document.getElementById('grid-container');
+        container.innerHTML = '';
+
+        const ROWS = 4;
+        const PAIRS_PER_ROW = 3;
+
+        for (let r = 0; r < ROWS; r++) {
+            const rowEl = document.createElement('div');
+            rowEl.className = "flex justify-between gap-12 w-full"; // 복도 간격 gap-12
+
+            for (let p = 0; p < PAIRS_PER_ROW; p++) {
+                const pairEl = document.createElement('div');
+                pairEl.className = "flex gap-1 flex-1 pair-container"; // 짝꿍 밀착 gap-1
+
+                // 남학생 (홀수열)
+                const boy = boys.shift();
+                pairEl.appendChild(createSeat(boy, 'boy'));
+
+                // 여학생 (짝수열)
+                const girl = girls.shift();
+                pairEl.appendChild(createSeat(girl, 'girl'));
+
+                rowEl.appendChild(pairEl);
+            }
+            container.appendChild(rowEl);
+        }
+
+        // SweetAlert2 성공 메시지
+        Swal.fire({
+            title: '배치 완료!',
+            text: '새로운 짝꿍이 정해졌어요. 마음에 드시나요?',
+            icon: 'success',
+            confirmButtonText: '확인',
+            confirmButtonColor: '#6366f1',
+            timer: 1500
         });
     }
 
-    // 예외 상황 대비 즉시 추첨 처리 (SweetAlert가 오류나거나 로드가 안 될 때 발동하는 비상 기능)
-    function executeDirectDraw() {
-        const numbers = generateLuckyNumbers();
-        renderBallElements(numbers);
+    function createSeat(name, gender) {
+        const div = document.createElement('div');
+        div.className = `seat-card flex-1 rounded-2xl flex flex-col items-center justify-center shadow-sm border-2 ${name ? 'seat-'+gender : 'seat-empty'}`;
+        
+        const nameText = name ? name : '빈자리';
+        const genderMark = gender === 'boy' ? '♂' : '♀';
+        const genderColor = gender === 'boy' ? 'text-indigo-300' : 'text-rose-300';
+
+        div.innerHTML = `
+            <span class="text-lg font-extrabold">${nameText}</span>
+            <span class="text-xs font-bold ${genderColor} mt-1">${genderMark}</span>
+        `;
+        return div;
     }
 
-    // 메인 실행 컨트롤러
-    function handleDrawTrigger() {
-        // [안전 장치 1] SweetAlert2 로드가 실패했거나 라이브러리가 존재하지 않을 경우 즉각 다이렉트로 추첨 작동
-        if (typeof Swal === 'undefined') {
-            executeDirectDraw();
-            return;
+    function updateView() {
+        const mode = document.querySelector('input[name="viewMode"]:checked').value;
+        const layout = document.getElementById('classroom-layout');
+        const grid = document.getElementById('grid-container');
+
+        if (mode === 'teacher') {
+            layout.classList.add('view-teacher');
+            grid.classList.add('view-teacher-grid');
+        } else {
+            layout.classList.remove('view-teacher');
+            grid.classList.remove('view-teacher-grid');
         }
+    }
 
-        const finalNumbers = generateLuckyNumbers();
-
-        // [안전 장치 2] 커스텀 로더 HTML 템플릿 사용 (자체 CSS 애니메이션으로 멈춤 현상 완벽 방지)
+    function saveAsPDF() {
+        // PDF 저장 전 알림
         Swal.fire({
-            title: '🔮 데이터 스캔 중...',
-            html: `
-                <div class="text-slate-400 my-3 text-xs md:text-sm">추첨 알고리즘 가동 중. 잠시만 기다려주세요...</div>
-                <div class="flex flex-col items-center justify-center my-4 py-2">
-                    <!-- 멋진 네온 로더 수동 구현 -->
-                    <div class="w-12 h-12 border-4 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
-                    <span class="text-xs font-mono tracking-widest text-cyan-400 animate-pulse">ANALYZING CANDIDATES...</span>
-                </div>
-            `,
-            timer: 1600, // 1.6초 뒤 자동 종료 후 당첨 연출 돌입
-            timerProgressBar: true,
-            showConfirmButton: false,
+            title: 'PDF 저장 중...',
+            html: '잠시만 기다려주세요!',
             allowOutsideClick: false,
-            customClass: {
-                popup: 'my-custom-swal',
-                title: 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-300 fw-bold fs-4'
-            }
-        }).then(() => {
-            // 로딩 창이 완전히 닫힌 직후 메인 보드에 공 그리기 실행
-            renderBallElements(finalNumbers);
+            didOpen: () => { Swal.showLoading(); }
+        });
 
-            // 공이 튀어나오는 연출 완료 시점에 맞춰서 최종 축하 명단 모달 알림 팝업
-            setTimeout(() => {
-                const gradients = [
-                    'from-cyan-400 to-blue-500',
-                    'from-sky-400 to-indigo-500',
-                    'from-indigo-400 to-purple-500',
-                    'from-purple-400 to-fuchsia-500',
-                    'from-fuchsia-400 to-pink-500'
-                ];
+        const element = document.getElementById('pdf-area');
+        const opt = {
+            margin: 10,
+            filename: '우리반_자리배치표.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
 
-                let badgeHtml = '<div class="flex justify-center flex-wrap gap-2.5 my-4">';
-                finalNumbers.forEach((num, index) => {
-                    badgeHtml += `
-                        <span class="inline-block px-4 py-3 rounded-2xl bg-gradient-to-r ${gradients[index]} text-white font-black text-2xl shadow-lg shadow-indigo-500/10 min-w-[65px] transform hover:scale-105 transition-transform duration-200">
-                            ${num}
-                        </span>`;
-                });
-                badgeHtml += '</div>';
-
-                Swal.fire({
-                    title: '🎉 당번 선발 완료!',
-                    html: `
-                        <div class="text-slate-300 text-sm mb-4">오늘 당첨된 행운의 청소 요정입니다!</div>
-                        ${badgeHtml}
-                        <div class="text-xs text-emerald-400 mt-3"><i class="fa-solid fa-shield-halved mr-1"></i> 메인 화면에도 명단이 정상 저장되었습니다.</div>
-                    `,
-                    icon: 'success',
-                    iconColor: '#22c55e',
-                    confirmButtonText: '임무 시작하기 🧹',
-                    customClass: {
-                        popup: 'my-custom-swal',
-                        title: 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200 fw-black fs-3',
-                        confirmButton: 'btn border-0 px-5 py-3 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-bold shadow-lg shadow-emerald-500/20'
-                    }
-                });
-            }, 1000); // 메인 카드 공 생성 연출이 끝나는 타이밍에 맞춰 피날레 제공
+        html2pdf().set(opt).from(element).save().then(() => {
+            Swal.fire({
+                title: '저장 성공!',
+                text: 'PDF 파일이 다운로드 폴더에 저장되었습니다.',
+                icon: 'success',
+                confirmButtonColor: '#10b981'
+            });
         });
     }
 </script>
